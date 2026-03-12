@@ -38,15 +38,22 @@ public class SpotifyConfig implements WebMvcConfigurer {
             new CaffeineCache("nowPlaying",
                 Caffeine.newBuilder().expireAfterWrite(nowPlayingTtl, TimeUnit.SECONDS).build()),
             new CaffeineCache("recentlyPlayed",
-                Caffeine.newBuilder().expireAfterWrite(recentlyPlayedTtl, TimeUnit.SECONDS).build())
+                Caffeine.newBuilder().expireAfterWrite(recentlyPlayedTtl, TimeUnit.SECONDS).build()),
+            new CaffeineCache("headlines",
+                Caffeine.newBuilder().expireAfterWrite(600, TimeUnit.SECONDS).build())
         ));
         return manager;
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        String[] origins = allowedOrigins.split(",");
         registry.addMapping("/spotify/**")
-                .allowedOrigins(allowedOrigins.split(","))
+                .allowedOrigins(origins)
+                .allowedMethods("GET")
+                .maxAge(3600);
+        registry.addMapping("/news/**")
+                .allowedOrigins(origins)
                 .allowedMethods("GET")
                 .maxAge(3600);
     }
