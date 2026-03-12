@@ -53,7 +53,7 @@ public class SpotifyConfig implements WebMvcConfigurer {
         String[] origins = allowedOrigins.split(",");
         registry.addMapping("/spotify/**")
                 .allowedOrigins(origins)
-                .allowedMethods("GET")
+                .allowedMethods("GET", "POST", "PUT")
                 .maxAge(3600);
         registry.addMapping("/news/**")
                 .allowedOrigins(origins)

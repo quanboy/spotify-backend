@@ -31,4 +31,28 @@ public class SpotifyController {
     public ResponseEntity<Map<String, Object>> randomTrack() {
         return ResponseEntity.ok(spotifyService.getRandomTrack());
     }
+
+    @PostMapping("/previous")
+    public ResponseEntity<Void> previous() {
+        spotifyService.playerPrevious();
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/next")
+    public ResponseEntity<Void> next() {
+        spotifyService.playerNext();
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/play")
+    public ResponseEntity<Void> play() {
+        spotifyService.playerPlay();
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/pause")
+    public ResponseEntity<Void> pause() {
+        spotifyService.playerPause();
+        return ResponseEntity.ok().build();
+    }
 }

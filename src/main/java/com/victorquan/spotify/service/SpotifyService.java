@@ -1,5 +1,6 @@
 package com.victorquan.spotify.service;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -108,6 +109,41 @@ public class SpotifyService {
         } catch (Exception e) {
             return Map.of();
         }
+    }
+
+    // ── PLAYER CONTROLS ───────────────────────────────────────────────────────
+    @CacheEvict(value = "nowPlaying", allEntries = true)
+    public void playerPrevious() {
+        try {
+            restTemplate.exchange(API_BASE + "/me/player/previous", HttpMethod.POST,
+                    new HttpEntity<>(authHeaders()), Void.class);
+        } catch (Exception ignored) {}
+    }
+
+    @CacheEvict(value = "nowPlaying", allEntries = true)
+    public void playerNext() {
+        try {
+            restTemplate.exchange(API_BASE + "/me/player/next", HttpMethod.POST,
+                    new HttpEntity<>(authHeaders()), Void.class);
+        } catch (Exception ignored) {}
+    }
+
+    @CacheEvict(value = "nowPlaying", allEntries = true)
+    public void playerPlay() {
+        try {
+            HttpHeaders headers = authHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            restTemplate.exchange(API_BASE + "/me/player/play", HttpMethod.PUT,
+                    new HttpEntity<>("{}", headers), Void.class);
+        } catch (Exception ignored) {}
+    }
+
+    @CacheEvict(value = "nowPlaying", allEntries = true)
+    public void playerPause() {
+        try {
+            restTemplate.exchange(API_BASE + "/me/player/pause", HttpMethod.PUT,
+                    new HttpEntity<>(authHeaders()), Void.class);
+        } catch (Exception ignored) {}
     }
 
     // ── HELPERS ───────────────────────────────────────────────────────────────
