@@ -26,6 +26,9 @@ public class SpotifyConfig implements WebMvcConfigurer {
     @Value("${spotify.cache.recently-played-ttl}")
     private int recentlyPlayedTtl;
 
+    @Value("${news.cache.headlines-ttl-seconds}")
+    private int headlinesTtl;
+
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
@@ -40,7 +43,7 @@ public class SpotifyConfig implements WebMvcConfigurer {
             new CaffeineCache("recentlyPlayed",
                 Caffeine.newBuilder().expireAfterWrite(recentlyPlayedTtl, TimeUnit.SECONDS).build()),
             new CaffeineCache("headlines",
-                Caffeine.newBuilder().expireAfterWrite(600, TimeUnit.SECONDS).build())
+                Caffeine.newBuilder().expireAfterWrite(headlinesTtl, TimeUnit.SECONDS).build())
         ));
         return manager;
     }

@@ -26,7 +26,7 @@ public class NewsService {
     public List<String> getHeadlines() {
         if (apiKey == null || apiKey.isBlank()) return Collections.emptyList();
         try {
-            String url = "https://newsapi.org/v2/top-headlines?country=us&pageSize=15&apiKey=" + apiKey;
+            String url = "https://newsapi.org/v2/top-headlines?q=trump&country=us&pageSize=15&apiKey=" + apiKey;
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             if (response == null || !response.containsKey("articles")) return Collections.emptyList();
             List<Map<String, Object>> articles = (List<Map<String, Object>>) response.get("articles");
