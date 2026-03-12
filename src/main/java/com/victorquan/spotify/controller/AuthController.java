@@ -57,27 +57,38 @@ public class AuthController {
 
     @GetMapping("/callback")
     public ResponseEntity<String> callback(@RequestParam String code) {
-        String credentials = Base64.getEncoder()
-                .encodeToString((clientId + ":" + clientSecret).getBytes());
+        try {
+            String credentials = Base64.getEncoder()
+                    .encodeToString((clientId + ":" + clientSecret).getBytes());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set("Authorization", "Basic " + credentials);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.set("Authorization", "Basic " + credentials);
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("code", code);
-        body.add("redirect_uri", callbackUrl);
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("grant_type", "authorization_code");
+            body.add("code", code);
+            body.add("redirect_uri", callbackUrl);
 
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-                "https://accounts.spotify.com/api/token", request, Map.class);
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    "https://accounts.spotify.com/api/token", request, Map.class);
 
-        if (response.getBody() != null) {
+            if (response.getBody() == null) {
+                return ResponseEntity.status(500).body("Authorization failed: empty response from Spotify.");
+            }
+
             String refreshToken = (String) response.getBody().get("refresh_token");
+            if (refreshToken == null) {
+                return ResponseEntity.status(500).body("Authorization failed: no refresh_token in response. Body: " + response.getBody());
+            }
 
             // Update the running instance immediately — no restart needed
-            tokenService.updateRefreshToken(refreshToken);
+            try {
+                tokenService.updateRefreshToken(refreshToken);
+            } catch (Exception e) {
+                // Token saved; access token refresh failed but that's non-fatal
+            }
 
             return ResponseEntity.ok(
                 "<html><body style='font-family:monospace;padding:2rem'>"
@@ -87,8 +98,8 @@ public class AuthController {
                 + "<pre style='background:#f0f0f0;padding:1rem;border-radius:4px'>" + refreshToken + "</pre>"
                 + "</body></html>"
             );
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Authorization failed: " + e.getMessage());
         }
-
-        return ResponseEntity.status(500).body("Authorization failed.");
     }
 }
