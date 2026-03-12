@@ -50,7 +50,10 @@ public class SpotifyService {
 
             if (item == null) return Map.of("isPlaying", false);
 
-            return buildTrackMap(item, isPlaying);
+            Map<String, Object> track = buildTrackMap(item, isPlaying);
+            Object progressMs = body.get("progress_ms");
+            if (progressMs != null) track.put("progressMs", progressMs);
+            return track;
 
         } catch (HttpClientErrorException.TooManyRequests e) {
             return Map.of("isPlaying", false, "error", "rate_limited");
