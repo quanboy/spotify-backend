@@ -8,6 +8,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
@@ -41,11 +43,12 @@ public class AuthController {
     @GetMapping("/login")
     public ResponseEntity<Void> login() {
         String scopes = "user-read-currently-playing user-read-recently-played user-library-read";
+        String encodedCallback = URLEncoder.encode(callbackUrl, StandardCharsets.UTF_8);
         String url = "https://accounts.spotify.com/authorize"
                 + "?response_type=code"
                 + "&client_id=" + clientId
                 + "&scope=" + scopes.replace(" ", "%20")
-                + "&redirect_uri=" + callbackUrl;
+                + "&redirect_uri=" + encodedCallback;
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", url)
