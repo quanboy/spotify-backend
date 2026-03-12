@@ -1,5 +1,6 @@
 package com.victorquan.spotify.controller;
 
+import com.victorquan.spotify.service.SpotifyTokenService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -12,8 +13,9 @@ import java.util.Map;
 
 /**
  * ONE-TIME USE: Visit /auth/login to kick off OAuth.
- * After authorizing, you'll get your refresh token printed to the screen.
- * Copy it into Railway as SPOTIFY_REFRESH_TOKEN, then you can ignore this controller.
+ * After authorizing, the refresh token is displayed on screen — copy it into
+ * Railway as SPOTIFY_REFRESH_TOKEN so it survives restarts.
+ * The running instance is updated immediately so no restart is required to start serving data.
  */
 @RestController
 @RequestMapping("/auth")
@@ -29,9 +31,11 @@ public class AuthController {
     private String callbackUrl;
 
     private final RestTemplate restTemplate;
+    private final SpotifyTokenService tokenService;
 
-    public AuthController(RestTemplate restTemplate) {
+    public AuthController(RestTemplate restTemplate, SpotifyTokenService tokenService) {
         this.restTemplate = restTemplate;
+        this.tokenService = tokenService;
     }
 
     @GetMapping("/login")
@@ -68,10 +72,15 @@ public class AuthController {
 
         if (response.getBody() != null) {
             String refreshToken = (String) response.getBody().get("refresh_token");
+
+            // Update the running instance immediately — no restart needed
+            tokenService.updateRefreshToken(refreshToken);
+
             return ResponseEntity.ok(
                 "<html><body style='font-family:monospace;padding:2rem'>"
                 + "<h2>✅ Authorized!</h2>"
-                + "<p>Copy this refresh token into Railway as <strong>SPOTIFY_REFRESH_TOKEN</strong>:</p>"
+                + "<p>The app is now serving Spotify data. To persist this across restarts, "
+                + "set the following as <strong>SPOTIFY_REFRESH_TOKEN</strong> in Railway:</p>"
                 + "<pre style='background:#f0f0f0;padding:1rem;border-radius:4px'>" + refreshToken + "</pre>"
                 + "</body></html>"
             );

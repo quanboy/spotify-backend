@@ -33,6 +33,7 @@ public class SpotifyService {
     }
 
     // ── NOW PLAYING ──────────────────────────────────────────────────────────
+    @Cacheable(value = "nowPlaying")
     public Map<String, Object> getNowPlaying() {
         try {
             ResponseEntity<Map> response = spotifyGet(

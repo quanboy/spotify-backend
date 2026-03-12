@@ -1,5 +1,6 @@
 package com.victorquan.spotify.service;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,8 +40,12 @@ public class SpotifyTokenService {
         return accessToken;
     }
 
+    @PostConstruct
     @Scheduled(fixedDelay = 3_300_000) // refresh every ~55 minutes
     public void refreshAccessToken() {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return; // No token yet — visit /auth/login to complete OAuth
+        }
         String credentials = Base64.getEncoder()
                 .encodeToString((clientId + ":" + clientSecret).getBytes());
 
@@ -62,5 +67,15 @@ public class SpotifyTokenService {
             int expiresIn = (int) response.getBody().get("expires_in");
             tokenExpiresAt = System.currentTimeMillis() + (expiresIn * 1000L);
         }
+    }
+
+    /**
+     * Updates the in-memory refresh token and immediately fetches a new access token.
+     * Called after a successful OAuth callback so the app works without a restart.
+     * The caller is still responsible for persisting the token as SPOTIFY_REFRESH_TOKEN.
+     */
+    public synchronized void updateRefreshToken(String newRefreshToken) {
+        this.refreshToken = newRefreshToken;
+        refreshAccessToken();
     }
 }
